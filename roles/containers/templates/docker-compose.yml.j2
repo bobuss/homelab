@@ -1,0 +1,10 @@
+#jinja2: lstrip_blocks: "True"
+---
+version: "2.1"
+services:
+{% for service in services %}
+  {% if service.enabled | bool %}
+  {{ service.name }}:
+    {{ service.docker | indent(4) }}
+  {% endif %}
+{% endfor %}
