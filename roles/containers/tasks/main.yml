@@ -1,1 +1,35 @@
-- include_tasks: install.yml
+---
+- name: Install Python and python3-pip
+  package:
+    name:
+      - python3
+      - python3-pip
+    state: present
+
+- name: Make sure that the docker compose folder exists
+  ansible.builtin.file:
+    path: "{{ docker_compose_dir }}"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    state: directory
+
+- name: Create directories
+  file:
+    path: "{{ docker_compose_dir }}/{{ item.path }}"
+    state: directory
+    mode: '{{ item.mode }}'
+  with_filetree: "{{ playbook_dir }}/templates/"
+  when: item.state == 'directory'
+
+- name: create services and docker-compose files
+  template:
+    src: '{{ item.src }}'
+    dest: "{{ docker_compose_dir }}/{{ item.path }}"
+    mode: '{{ item.mode }}'
+  with_filetree: "{{ playbook_dir }}/templates/"
+  when: item.state == 'file'
+
+- name: Docker-compose up
+  community.docker.docker_compose:
+    project_src: "{{ docker_compose_dir }}"
+
