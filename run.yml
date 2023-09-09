@@ -6,13 +6,13 @@
   become: yes
 
   roles:
-    # - role: system
-    #   tags:
-    #     - system
+    - name: system
+      tags:
+        - system
 
-    # - role: geerlingguy.docker
-    #   tags:
-    #       - docker
+    - name: geerlingguy.docker
+      tags:
+          - docker
 
     - name: containers
       tags:

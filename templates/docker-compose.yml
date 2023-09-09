@@ -80,8 +80,7 @@ services:
       - homepage.description=Bittorrent client
       - homepage.weight=5
       - homepage.widget.type=qbittorrent
-      # - homepage.widget.url=http://vpn:8081
-      - homepage.widget.url=http://vpn:8081
+      - homepage.widget.url=http://localhost:8081
       - homepage.widget.username=admin
       - homepage.widget.password=adminadmin
   sonarr:
@@ -110,7 +109,7 @@ services:
       - homepage.description=Series management
       - homepage.weight=0
       - homepage.widget.type=sonarr
-      - homepage.widget.url=http://vpn:8989/sonarr
+      - homepage.widget.url=http://localhost:8989/sonarr
       - homepage.widget.key=${SONARR_API_KEY}
   radarr:
     image: lscr.io/linuxserver/radarr
@@ -138,7 +137,7 @@ services:
       - homepage.description=Movies management
       - homepage.weight=1
       - homepage.widget.type=radarr
-      - homepage.widget.url=http://vpn:7878/radarr
+      - homepage.widget.url=http://localhost:7878/radarr
       - homepage.widget.key=${RADARR_API_KEY}
   prowlarr:
     image: lscr.io/linuxserver/prowlarr:latest
@@ -165,7 +164,7 @@ services:
       - homepage.description=Indexers management
       - homepage.weight=4
       - homepage.widget.type=prowlarr
-      - homepage.widget.url=http://vpn:9696/prowlarr
+      - homepage.widget.url=http://localhost:9696/prowlarr
       - homepage.widget.key=${PROWLARR_API_KEY}
   jellyfin:
     image: lscr.io/linuxserver/jellyfin
@@ -200,7 +199,7 @@ services:
       - homepage.description=Media server
       - homepage.weight=3
       - homepage.widget.type=jellyfin
-      - homepage.widget.url=http://vpn:8096/jellyfin
+      - homepage.widget.url=http://localhost:8096/jellyfin
       - homepage.widget.key=${JELLYFIN_API_KEY}
   homepage:
     image: ghcr.io/benphelps/homepage:latest
