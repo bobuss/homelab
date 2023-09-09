@@ -8,10 +8,19 @@
 
 - name: Make sure that the docker compose folder exists
   ansible.builtin.file:
-    path: "{{ docker_compose_dir }}"
+    path: "{{ item }}"
     owner: "{{ username }}"
     group: "{{ username }}"
     state: directory
+  loop:
+    - "{{ docker_compose_dir }}"
+    - "{{ docker_compose_dir }}/torrents/tv"
+    - "{{ docker_compose_dir }}/torrents/movies"
+    - "{{ docker_compose_dir }}/media/tv"
+    - "{{ docker_compose_dir }}/media/movies"
+    - "{{ docker_compose_dir }}/media/Films"
+    - "{{ docker_compose_dir }}/media/Enfants"
+    - "{{ docker_compose_dir }}/media/Series"
 
 - name: Create directories
   file:
@@ -32,4 +41,5 @@
 - name: Docker-compose up
   community.docker.docker_compose:
     project_src: "{{ docker_compose_dir }}"
+    remove_orphans: true
 
