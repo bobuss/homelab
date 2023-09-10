@@ -1,10 +1,4 @@
 ---
-- name: Install Python and python3-pip
-  package:
-    name:
-      - python3
-      - python3-pip
-    state: present
 
 - name: Make sure that the docker compose folder exists
   ansible.builtin.file:
@@ -13,18 +7,18 @@
     group: "{{ username }}"
     state: directory
   loop:
-    - "{{ docker_compose_dir }}"
-    - "{{ docker_compose_dir }}/torrents/tv"
-    - "{{ docker_compose_dir }}/torrents/movies"
-    - "{{ docker_compose_dir }}/media/tv"
-    - "{{ docker_compose_dir }}/media/movies"
-    - "{{ docker_compose_dir }}/media/Films"
-    - "{{ docker_compose_dir }}/media/Enfants"
-    - "{{ docker_compose_dir }}/media/Series"
+    - "{{ working_dir }}"
+    - "{{ working_dir }}/torrents/tv"
+    - "{{ working_dir }}/torrents/movies"
+    - "{{ working_dir }}/media/tv"
+    - "{{ working_dir }}/media/movies"
+    - "{{ working_dir }}/media/Films"
+    - "{{ working_dir }}/media/Enfants"
+    - "{{ working_dir }}/media/Series"
 
 - name: Create directories
   file:
-    path: "{{ docker_compose_dir }}/{{ item.path }}"
+    path: "{{ working_dir }}/{{ item.path }}"
     state: directory
     mode: '{{ item.mode }}'
   with_filetree: "{{ playbook_dir }}/templates/"
@@ -33,13 +27,13 @@
 - name: create services and docker-compose files
   template:
     src: '{{ item.src }}'
-    dest: "{{ docker_compose_dir }}/{{ item.path }}"
+    dest: "{{ working_dir }}/{{ item.path }}"
     mode: '{{ item.mode }}'
   with_filetree: "{{ playbook_dir }}/templates/"
   when: item.state == 'file'
 
 - name: Docker-compose up
   community.docker.docker_compose:
-    project_src: "{{ docker_compose_dir }}"
+    project_src: "{{ working_dir }}"
     remove_orphans: true
 

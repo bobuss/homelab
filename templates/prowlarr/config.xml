@@ -11,7 +11,7 @@
   <LogLevel>info</LogLevel>
   <SslCertPath></SslCertPath>
   <SslCertPassword></SslCertPassword>
-  <UrlBase>/prowlarr</UrlBase>
+  <UrlBase></UrlBase>
   <InstanceName>Prowlarr</InstanceName>
   <UpdateMechanism>Docker</UpdateMechanism>
 </Config>

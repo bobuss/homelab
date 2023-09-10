@@ -3,7 +3,7 @@
   <RequireHttps>false</RequireHttps>
   <CertificatePath />
   <CertificatePassword />
-  <BaseUrl>/jellyfin</BaseUrl>
+  <BaseUrl>/</BaseUrl>
   <PublicHttpsPort>8920</PublicHttpsPort>
   <HttpServerPortNumber>8096</HttpServerPortNumber>
   <HttpsPortNumber>8920</HttpsPortNumber>

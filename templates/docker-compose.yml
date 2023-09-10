@@ -11,16 +11,17 @@ services:
       - --providers.docker.exposedbydefault=false
       - --entrypoints.web.address=:80
     ports:
-      - 80:80
-      - 8080:8080
-      - 8081:8081
-      - 8989:8989
-      - 7878:7878
-      - 9696:9696
-      - 8086:8086
-      - 3000:3000
-      - "7359:7359/udp"
-      - "1900:1900/udp"
+      - 80:80             # traefik
+      - 8080:8080         # traefik dashboard
+      - 8081:8081         # qbittorrent
+      - 8989:8989         # sonarr
+      - 7878:7878         # radarr
+      - 9696:9696         # prowlarr
+      - 8086:8086         # jellyfin
+      - 3000:3000         # jellyfin
+      - "7359:7359/udp"   # jellyfin
+      - "1900:1900/udp"   # jellyfin
+      - 5055:5055         # jellyseer
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
   vpn:
@@ -63,20 +64,20 @@ services:
         condition: service_healthy
     labels:
       - traefik.enable=true
-      - traefik.http.routers.qbittorrent.rule=(Host(`${HOSTNAME}`) && PathPrefix(`/qbittorrent`))
+      - traefik.http.routers.qbittorrent.rule=Host(`qbittorrent.${HOSTNAME}`)
       - traefik.http.services.qbittorrent.loadbalancer.server.port=8081
-      - traefik.http.routers.qbittorrent.middlewares=qbittorrent-strip-slash,qbittorrent-stripprefix
+      # - traefik.http.routers.qbittorrent.middlewares=qbittorrent-strip-slash,qbittorrent-stripprefix
       # https://github.com/qbittorrent/qBittorrent/issues/5693#issuecomment-552146296
-      - traefik.http.middlewares.qbittorrent-stripprefix.stripPrefix.prefixes=/qbittorrent
-      # https://community.traefik.io/t/middleware-to-add-the-if-needed/1895/19
-      - traefik.http.middlewares.qbittorrent-strip-slash.redirectregex.regex=(^.*\/qbittorrent$$)
-      - traefik.http.middlewares.qbittorrent-strip-slash.redirectregex.replacement=$$1/
-      - traefik.http.middlewares.qbittorrent-strip-slash.redirectregex.permanent=false
+      # - traefik.http.middlewares.qbittorrent-stripprefix.stripPrefix.prefixes=/qbittorrent
+      # # https://community.traefik.io/t/middleware-to-add-the-if-needed/1895/19
+      # - traefik.http.middlewares.qbittorrent-strip-slash.redirectregex.regex=(^.*\/qbittorrent$$)
+      # - traefik.http.middlewares.qbittorrent-strip-slash.redirectregex.replacement=$$1/
+      # - traefik.http.middlewares.qbittorrent-strip-slash.redirectregex.permanent=false
       #- com.centurylinklabs.watchtower.depends-on=/vpn
       - homepage.group=Download
       - homepage.name=qBittorrent
       - homepage.icon=qbittorrent.png
-      - homepage.href=/qbittorrent
+      - homepage.href=http://qbittorrent.${HOSTNAME}/
       - homepage.description=Bittorrent client
       - homepage.weight=5
       - homepage.widget.type=qbittorrent
@@ -100,16 +101,16 @@ services:
         condition: service_healthy
     labels:
       - traefik.enable=true
-      - traefik.http.routers.sonarr.rule=(Host(`${HOSTNAME}`) && PathPrefix(`/sonarr`))
+      - traefik.http.routers.sonarr.rule=Host(`sonarr.${HOSTNAME}`)
       - traefik.http.services.sonarr.loadbalancer.server.port=8989
       - homepage.group=Media
       - homepage.name=Sonarr
       - homepage.icon=sonarr.png
-      - homepage.href=/sonarr
+      - homepage.href=http://sonarr.${HOSTNAME}/
       - homepage.description=Series management
       - homepage.weight=0
       - homepage.widget.type=sonarr
-      - homepage.widget.url=http://localhost:8989/sonarr
+      - homepage.widget.url=http://localhost:8989
       - homepage.widget.key=${SONARR_API_KEY}
   radarr:
     image: lscr.io/linuxserver/radarr
@@ -128,16 +129,16 @@ services:
         condition: service_healthy
     labels:
       - traefik.enable=true
-      - traefik.http.routers.radarr.rule=(Host(`${HOSTNAME}`) && PathPrefix(`/radarr`))
+      - traefik.http.routers.radarr.rule=Host(`radarr.${HOSTNAME}`)
       - traefik.http.services.radarr.loadbalancer.server.port=7878
       - homepage.group=Media
       - homepage.name=Radarr
       - homepage.icon=radarr.png
-      - homepage.href=/radarr
+      - homepage.href=http://radarr.${HOSTNAME}/
       - homepage.description=Movies management
       - homepage.weight=1
       - homepage.widget.type=radarr
-      - homepage.widget.url=http://localhost:7878/radarr
+      - homepage.widget.url=http://localhost:7878
       - homepage.widget.key=${RADARR_API_KEY}
   prowlarr:
     image: lscr.io/linuxserver/prowlarr:latest
@@ -155,16 +156,16 @@ services:
         condition: service_healthy
     labels:
       - traefik.enable=true
-      - traefik.http.routers.prowlarr.rule=(Host(`${HOSTNAME}`) && PathPrefix(`/prowlarr`))
+      - traefik.http.routers.prowlarr.rule=Host(`prowlarr.${HOSTNAME}`)
       - traefik.http.services.prowlarr.loadbalancer.server.port=9696
       - homepage.group=Download
       - homepage.name=Prowlarr
       - homepage.icon=prowlarr.png
-      - homepage.href=/prowlarr
+      - homepage.href=http://prowlarr.${HOSTNAME}/
       - homepage.description=Indexers management
       - homepage.weight=4
       - homepage.widget.type=prowlarr
-      - homepage.widget.url=http://localhost:9696/prowlarr
+      - homepage.widget.url=http://localhost:9696
       - homepage.widget.key=${PROWLARR_API_KEY}
   jellyfin:
     image: lscr.io/linuxserver/jellyfin
@@ -173,7 +174,7 @@ services:
       - PUID=${USER_ID}
       - PGID=${GROUP_ID}
       - TZ=${TIMEZONE}
-      - JELLYFIN_PublishedServerUrl=${HOSTNAME}/jellyfin
+      - JELLYFIN_PublishedServerUrl=jellyfin.${HOSTNAME}
     volumes:
       - ./jellyfin:/config
       - ${DATA_ROOT}:/data
@@ -190,17 +191,53 @@ services:
         condition: service_healthy
     labels:
       - traefik.enable=true
-      - traefik.http.routers.jellyfin.rule=(Host(`${HOSTNAME}`) && PathPrefix(`/jellyfin`))
+      - traefik.http.routers.jellyfin.rule=Host(`jellyfin.${HOSTNAME}`)
       - traefik.http.services.jellyfin.loadbalancer.server.port=8096
       - homepage.group=Media
       - homepage.name=Jellyfin
       - homepage.icon=jellyfin.png
-      - homepage.href=/jellyfin
+      - homepage.href=http://jellyfin.${HOSTNAME}/
       - homepage.description=Media server
       - homepage.weight=3
       - homepage.widget.type=jellyfin
-      - homepage.widget.url=http://localhost:8096/jellyfin
+      - homepage.widget.url=http://localhost:8096
       - homepage.widget.key=${JELLYFIN_API_KEY}
+  jellyseerr:
+    image: fallenbagel/jellyseerr:latest
+    container_name: jellyseerr
+    environment:
+        - LOG_LEVEL=debug
+        - TZ=${TIMEZONE}
+    volumes:
+      - ./jellyseerr:/app/config
+    restart: unless-stopped
+    network_mode: "service:vpn"
+    depends_on:
+      vpn:
+        condition: service_healthy
+    # ports:
+    #   - 5055:5055         # jellyseer
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.jellyseerr.rule=Host(`jellyseerr.${HOSTNAME}`)
+      - traefik.http.services.jellyseerr.loadbalancer.server.port=5055
+      # - traefik.docker.network=global
+
+      # - traefik.http.middlewares.jellyseerr-stripprefix.stripPrefix.prefixes=/jellyseerr
+
+      # - traefik.http.middlewares.jellyseerr-strip-slash.redirectregex.regex=(^.*\/jellyseerr$$)
+      # - traefik.http.middlewares.jellyseerr-strip-slash.redirectregex.replacement=$$1/
+      # - traefik.http.middlewares.jellyseerr-strip-slash.redirectregex.permanent=false
+
+      - homepage.group=Media
+      - homepage.name=Jellyseerr
+      - homepage.icon=jellyseerr.png
+      - homepage.href=http://jellyseerr.${HOSTNAME}/
+      - homepage.description=Media server
+      - homepage.weight=3
+      - homepage.widget.type=jellyseerr
+      - homepage.widget.url=http://localhost:5055
+      - homepage.widget.key=${JELLYSEERR_API_KEY}
   homepage:
     image: ghcr.io/benphelps/homepage:latest
     container_name: homepage

@@ -1,0 +1,16 @@
+[Unit]
+Description=Avahi/mDNS CNAME publisher
+After=network.target avahi-daemon.service
+
+[Service]
+User={{ username }}
+Type=simple
+WorkingDirectory={{ working_dir }}
+EnvironmentFile=-/etc/default/mdns-publish-cname
+ExecStart=/usr/local/bin/mdns-publish-cname --ttl 20 {{ services | map('regex_replace','^(.+)$','\\1.' + hostname + '.local') | join(' ') }}
+Restart=no
+PrivateTmp=true
+PrivateDevices=true
+
+[Install]
+WantedBy=multi-user.target

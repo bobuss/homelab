@@ -22,7 +22,7 @@
 
 - name: Set the hostname
   hostname:
-    name: "{{ inventory_hostname }}"
+    name: "{{ hostname }}"
 
 - name: Replace the hostname entry with our own
   ansible.builtin.lineinfile:
@@ -55,3 +55,18 @@
     fstype: cifs
     state: mounted
   loop: "{{ mount_points }}"
+
+- name: install mdns-publish-cname pip package
+  ansible.builtin.pip:
+    name: mdns-publisher
+    # python3.11 prevents system pip w/o this extra parameter
+    extra_args: --break-system-packages
+  notify:
+    - restart mdns-publisher
+
+- name: create mdns-publisher service file
+  template:
+    src: mdns-publisher.service.j2
+    dest: /etc/systemd/system/mdns-publisher.service
+  notify:
+    - restart mdns-publisher

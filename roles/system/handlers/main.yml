@@ -1,0 +1,9 @@
+---
+
+- name: restart mdns-publisher
+  systemd:
+    name: mdns-publisher
+    state: restarted
+    enabled: yes
+    daemon_reload: yes
+  become: true
