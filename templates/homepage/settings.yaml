@@ -10,10 +10,7 @@ headerStyle: {{HOMEPAGE_VAR_HEADER_STYLE}}
 layout:
   Media:
     style: row
-    columns: 3
-  Download:
-    style: row
-    columns: 2
+    columns: 4
 
 quicklaunch:
   searchDescriptions: true
