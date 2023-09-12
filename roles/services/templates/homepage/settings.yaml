@@ -1,11 +1,13 @@
 ---
 # For configuration options and examples, please see:
 # https://gethomepage.dev/en/configs/settings
-{% raw %}
-title: {{HOMEPAGE_VAR_TITLE}}
+title: {{ homepage.title }}
 
-headerStyle: {{HOMEPAGE_VAR_HEADER_STYLE}}
-{% endraw %}
+background: {{ homepage.background_image }}
+
+headerStyle: {{ homepage.header_style }}
+
+target: _self # Possible options include _blank, _self, and _top
 
 layout:
   Media:
