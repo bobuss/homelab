@@ -46,5 +46,5 @@ networks:
       config:
         - subnet: "${MACVLAN_SUBNET}"
           gateway: "${MACVLAN_GATEWAY}"
-          ip_range: "${ADGUARD_IP_RANGE}"
+          ip_range: "${MACVLAN_IP_RANGE}"
 
