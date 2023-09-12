@@ -6,6 +6,7 @@ services:
     container_name: traefik
     restart: always
     command:
+      - "--log.level=DEBUG"
       - "--api.insecure=true"
       - "--api.dashboard=true"
       - --providers.docker=true
@@ -134,6 +135,9 @@ services:
       - homepage.widget.url=http://vpn:9696
       - homepage.widget.key=${PROWLARR_API_KEY}
 
+  #
+  # nordvpn, only used by prowlarr to access YGG in France
+  #
   vpn:
     image: ghcr.io/bubuntux/nordvpn
     container_name: vpn
@@ -249,56 +253,88 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
 
-
   #
-  # Adguard Home lives on its own macvlan network, so it can be reached via ADGUARD_STATIC_IP
+  # photoprism
   #
-  adguardhome:
-    image: 'adguard/adguardhome:latest'
-    container_name: 'adguard'
-    restart: 'unless-stopped'
-    ports:
-      - 3000:3000/tcp
-      - 54:53/tcp
-      - 54:53/udp
-      - 67:67/udp
-      - 67:67/tcp
-      - 69:68/tcp
-      - 69:68/udp
-      - 853:853/tcp
+  mariadb:
+    container_name: photoprism-mariadb
+    image: mariadb:latest
+    restart: unless-stopped
+    stop_grace_period: 5s
+    security_opt: # see https://github.com/MariaDB/mariadb-docker/issues/434#issuecomment-1136151239
+      - seccomp:unconfined
+      - apparmor:unconfined
     volumes:
-      - ./adguardhome/work:/opt/adguardhome/work
-      - ./adguardhome/conf:/opt/adguardhome/conf
-    networks:
-      adguard-macvlan:
-        ipv4_address: ${ADGUARD_STATIC_IP}
-      default:
+      - ./photoprism/db:/var/lib/mysql
+    environment:
+      - TZ=${TIMEZONE}
+      - MYSQL_ROOT_PASSWORD=${PHOTOPRISM_MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${PHOTOPRISM_MYSQL_DB}
+      - MYSQL_USER=${PHOTOPRISM_MYSQL_USER}
+      - MYSQL_PASSWORD=${PHOTOPRISM_MYSQL_PASSWORD}
+
+  photoprism:
+    container_name: photoprism
+    image: photoprism/photoprism:latest
+    restart: unless-stopped
+    stop_grace_period: 10s
+    depends_on:
+      - mariadb
+    security_opt:
+      - seccomp:unconfined
+      - apparmor:unconfined
+    ports:
+      - 2342:2342
+    working_dir: "/photoprism"
+    volumes:
+      - ./photoprism/app:/photoprism
+    environment:
+      - TZ=US/Eastern
+      - PHOTOPRISM_ADMIN_PASSWORD=${PHOTOPRISM_PASSWORD}
+      - PHOTOPRISM_SITE_URL=http://photoprism.${HOSTNAME}
+      - PHOTOPRISM_EXPERIMENTAL=false
+      - PHOTOPRISM_HTTP_COMPRESSION=gzip
+      - PHOTOPRISM_DATABASE_DRIVER=mysql
+      - PHOTOPRISM_DATABASE_SERVER=mariadb:3306
+      - PHOTOPRISM_AUTH_MODE="public"
+      - PHOTOPRISM_DATABASE_NAME=${PHOTOPRISM_MYSQL_DB}
+      - PHOTOPRISM_DATABASE_USER=${PHOTOPRISM_MYSQL_USER}
+      - PHOTOPRISM_DATABASE_PASSWORD=${PHOTOPRISM_MYSQL_PASSWORD}
+      - PHOTOPRISM_DISABLE_CHOWN=false
+      - PHOTOPRISM_DISABLE_BACKUPS=true
+      - PHOTOPRISM_DISABLE_WEBDAV=false
+      - PHOTOPRISM_DETECT_NSFW=true
+      - PHOTOPRISM_UPLOAD_NSFW=false
+      - PHOTOPRISM_DEBUG=true
+      - PHOTOPRISM_THUMB_FILTER=lanczos
+      - PHOTOPRISM_THUMB_UNCACHED=true
+      - PHOTOPRISM_THUMB_SIZE=2048
+      - PHOTOPRISM_THUMB_SIZE_UNCACHED=7680
+      - PHOTOPRISM_JPEG_SIZE=7680
+      - PHOTOPRISM_JPEG_QUALITY=92
+      - TF_CPP_MIN_LOG_LEVEL=0
+      - PHOTOPRISM_FFMPEG_ENCODER=h264_qsv
+      - PHOTOPRISM_INIT=tensorflow-amd64-avx2
+    devices:
+      - /dev/dri:/dev/dri
     labels:
       - traefik.enable=true
-      - traefik.http.routers.adguardhome.rule=(Host(`adguardhome.${HOSTNAME}`) && PathPrefix(`/`))
-      - traefik.http.services.adguardhome.loadbalancer.server.port=3000
-      - homepage.group=Utilities
-      - homepage.name=AdguardHome
-      - homepage.icon=adguard-home.png
-      - homepage.href=http://${ADGUARD_STATIC_IP}
-      - homepage.description=DNS with blocking capabilities
+      - traefik.http.routers.photoprism.rule=Host(`photoprism.${HOSTNAME}`)
+      - traefik.http.services.photoprism.loadbalancer.server.port=2342
+      - homepage.group=Media
+      - homepage.name=Photoprism
+      - homepage.icon=photoprism.png
+      - homepage.href=http://photoprism.${HOSTNAME}/
+      - homepage.description=Media server
       - homepage.weight=3
-      - homepage.widget.type=adguard
-      - homepage.widget.url=http://${ADGUARD_STATIC_IP}
-      - homepage.widget.username=${ADGUARD_USERNAME}
-      - homepage.widget.password=${ADGUARD_PASSWORD}
-
+      - homepage.widget.type=photoprism
+      - homepage.widget.url=http://photoprism:2342
+      - homepage.widget.username=admin
+      - homepage.widget.password=${PHOTOPRISM_PASSWORD}
 
 
 networks:
   default:
     name: docker-compose-nas
   adguard-macvlan:
-    name: adguard-macvlan
-    driver: macvlan
-    driver_opts:
-      parent: ${MACVLAN_PARENT}
-    ipam:
-      config:
-        - subnet: "${MACVLAN_SUBNET}"
-          gateway: "${MACVLAN_GATEWAY}"
+    external: true

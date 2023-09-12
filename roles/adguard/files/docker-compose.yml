@@ -1,0 +1,50 @@
+version: "3.9"
+services:
+
+  #
+  # Adguard Home lives on its own macvlan network, so it can be reached via ADGUARD_STATIC_IP
+  #
+  adguardhome:
+    image: 'adguard/adguardhome:latest'
+    container_name: 'adguard'
+    restart: 'unless-stopped'
+    ports:
+      - 3000:3000/tcp
+      - 54:53/tcp
+      - 54:53/udp
+      - 67:67/udp
+      - 67:67/tcp
+      - 69:68/tcp
+      - 69:68/udp
+      - 853:853/tcp
+    volumes:
+      - ./work:/opt/adguardhome/work
+      - ./conf:/opt/adguardhome/conf
+    networks:
+      adguard-macvlan:
+        ipv4_address: ${ADGUARD_STATIC_IP}
+      default:
+    labels:
+      - homepage.group=Utilities
+      - homepage.name=AdguardHome
+      - homepage.icon=adguard-home.png
+      - homepage.href=http://${ADGUARD_STATIC_IP}
+      - homepage.description=DNS with blocking capabilities
+      - homepage.weight=3
+      - homepage.widget.type=adguard
+      - homepage.widget.url=http://${ADGUARD_STATIC_IP}
+      - homepage.widget.username=${ADGUARD_USERNAME}
+      - homepage.widget.password=${ADGUARD_PASSWORD}
+
+networks:
+  adguard-macvlan:
+    name: adguard-macvlan
+    driver: macvlan
+    driver_opts:
+      parent: ${MACVLAN_PARENT}
+    ipam:
+      config:
+        - subnet: "${MACVLAN_SUBNET}"
+          gateway: "${MACVLAN_GATEWAY}"
+          ip_range: "${ADGUARD_IP_RANGE}"
+

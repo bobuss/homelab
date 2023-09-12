@@ -21,7 +21,7 @@
     path: "{{ working_dir }}/{{ item.path }}"
     state: directory
     mode: '{{ item.mode }}'
-  with_filetree: "{{ playbook_dir }}/templates/"
+  with_filetree: "{{ role_path }}/templates/"
   when: item.state == 'directory'
 
 - name: create services and docker-compose files
@@ -29,7 +29,7 @@
     src: '{{ item.src }}'
     dest: "{{ working_dir }}/{{ item.path }}"
     mode: '{{ item.mode }}'
-  with_filetree: "{{ playbook_dir }}/templates/"
+  with_filetree: "{{ role_path }}/templates/"
   when: item.state == 'file'
 
 - name: Docker-compose up

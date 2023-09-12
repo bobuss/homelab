@@ -12,9 +12,13 @@
 
     - name: geerlingguy.docker
       tags:
-          - docker
+        - docker
 
-    - name: containers
+    - name: adguard
       tags:
-        - containers
+        - adguard
+
+    - name: services
+      tags:
+        - services
 

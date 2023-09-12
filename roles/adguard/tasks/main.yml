@@ -1,0 +1,30 @@
+---
+
+- name: Make sure that the adguard folder exists
+  ansible.builtin.file:
+    path: "{{ adguard_working_dir }}"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    state: directory
+    mode: 0755
+
+- name: create docker-compose file for adguard
+  copy:
+    src: docker-compose.yml
+    dest: "{{ adguard_working_dir }}/docker-compose.yml"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: 0644
+
+- name: create environment file for adguard
+  template:
+    src: .env.j2
+    dest: "{{ adguard_working_dir }}/.env"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: 0644
+
+- name: Docker-compose up
+  community.docker.docker_compose:
+    project_src: "{{ adguard_working_dir }}"
+    remove_orphans: true
