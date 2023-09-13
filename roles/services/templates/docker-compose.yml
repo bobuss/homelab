@@ -45,6 +45,7 @@ services:
       default:
     labels:
       - traefik.enable=true
+      - "traefik.docker.network=docker-compose-nas"
       - traefik.http.routers.homepage.rule=(Host(`${HOSTNAME}`) && PathPrefix(`/`))
       - traefik.http.services.homepage.loadbalancer.server.port=3000
 

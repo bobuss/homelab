@@ -1,7 +1,9 @@
 
 # homelab setup
 
-Inspired by https://github.com/notthebee/infra
+Inspired by
+- https://github.com/notthebee/infra
+- https://github.com/AdrienPoupa/docker-compose-nas
 
 
 
