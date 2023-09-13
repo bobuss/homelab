@@ -1,7 +1,6 @@
 ---
 # For configuration options and examples, please see:
 # https://gethomepage.dev/en/configs/widgets
-{% raw %}
 - resources:
     cpu: true
     memory: true
@@ -9,19 +8,18 @@
       - /
 
 - search:
-    provider: {{HOMEPAGE_VAR_SEARCH_PROVIDER}}
+    provider: {{ homepage.search_provider }}
     target: _blank
 
 - openmeteo:
-      label: {{HOMEPAGE_VAR_WEATHER_CITY}}
-      latitude: {{HOMEPAGE_VAR_WEATHER_LAT}}
-      longitude: {{HOMEPAGE_VAR_WEATHER_LONG}}
-      timezone: {{HOMEPAGE_VAR_WEATHER_TIME}}
-      units: {{HOMEPAGE_VAR_WEATHER_UNIT}}
+      label: {{ homepage.weather_city }}
+      latitude: {{ homepage.weather_lat }}
+      longitude: {{ homepage.weather_long }}
+      timezone: {{ timezone }}
+      units: {{ homepage.weather_unit }}
       cache: 5 # Time in minutes to cache API responses, to stay within limits
 
 - datetime:
     text_size: md
     format:
       timeStyle: short
-{% endraw %}

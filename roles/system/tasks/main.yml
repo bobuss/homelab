@@ -70,3 +70,13 @@
     dest: /etc/systemd/system/mdns-publisher.service
   notify:
     - restart mdns-publisher
+
+- name: add local subdomains to /etc/hosts
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    state: present
+    line: "127.0.0.1 {{item}}.{{ inventory_hostname }}"
+    owner: root
+    group: root
+    mode: '0644'
+  loop: "{{ services }}"
