@@ -6,6 +6,7 @@
     memory: true
     disk:
       - /
+      - /data
 
 - search:
     provider: {{ homepage.search_provider }}

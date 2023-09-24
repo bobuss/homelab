@@ -21,7 +21,7 @@ services:
       # - traefik.enable=true
       # - traefik.http.routers.homepage.rule=(Host(`${HOSTNAME}`) && PathPrefix(`/dashboard`))
       # - traefik.http.services.homepage.loadbalancer.server.port=8080
-      - homepage.group=Network
+      - homepage.group=Utilities
       - homepage.name=traefik
       - homepage.icon=traefik.png
       - homepage.href=http://${HOSTNAME}:8080
@@ -195,6 +195,9 @@ services:
       - /mnt/Films:/mnt/Films
       - /mnt/Series:/mnt/Series
       - /mnt/Enfants:/mnt/Enfants
+    ports:
+      - "7359:7359/udp"
+      - "1900:1900/udp"
     devices:
       - /dev/dri/renderD128:/dev/dri/renderD128
       - /dev/dri/card0:/dev/dri/card0
@@ -203,11 +206,11 @@ services:
       - traefik.enable=true
       - traefik.http.routers.jellyfin.rule=Host(`jellyfin.${HOSTNAME}`)
       - traefik.http.services.jellyfin.loadbalancer.server.port=8096
-      - homepage.group=Media
+      - homepage.group=Jellyfin
       - homepage.name=Jellyfin
       - homepage.icon=jellyfin.png
       - homepage.href=http://jellyfin.${HOSTNAME}/
-      - homepage.description=Media server
+      - homepage.description=Jellyfin Media server
       - homepage.weight=3
       - homepage.widget.type=jellyfin
       - homepage.widget.url=http://jellyfin:8096
@@ -226,15 +229,107 @@ services:
       - traefik.enable=true
       - traefik.http.routers.jellyseerr.rule=Host(`jellyseerr.${HOSTNAME}`)
       - traefik.http.services.jellyseerr.loadbalancer.server.port=5055
-      - homepage.group=Media
+      - homepage.group=Jellyfin
       - homepage.name=Jellyseerr
       - homepage.icon=jellyseerr.png
       - homepage.href=http://jellyseerr.${HOSTNAME}/
-      - homepage.description=Media server
+      - homepage.description=Jellyfin companion
       - homepage.weight=3
       - homepage.widget.type=jellyseerr
       - homepage.widget.url=http://jellyseerr:5055
       - homepage.widget.key=${JELLYSEERR_API_KEY}
+
+  plex:
+    image: lscr.io/linuxserver/plex:latest
+    container_name: plex
+    environment:
+      - PUID=${USER_ID}
+      - PGID=${GROUP_ID}
+      - TZ=${TIMEZONE}
+      - VERSION=docker
+      - PLEX_CLAIM= ${PLEX_TOKEN}
+    volumes:
+      - ./plex:/config
+      - ./media:/mnt/local
+      - /mnt/Films:/mnt/Films
+      - /mnt/Series:/mnt/Series
+      - /mnt/Enfants:/mnt/Enfants
+    ports:
+      - "3005:3005/tcp"
+      - "8324:8324/tcp"
+      - "32469:32469/tcp"
+      - "32410:32410/udp"
+      - "32412:32412/udp"
+      - "32413:32413/udp"
+      - "32414:32414/udp"
+    devices:
+      - /dev/dri/renderD128:/dev/dri/renderD128
+      - /dev/dri/card0:/dev/dri/card0
+    restart: unless-stopped
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.plex.rule=Host(`plex.${HOSTNAME}`)
+      - traefik.http.services.plex.loadbalancer.server.port=32400
+      - homepage.group=Plex
+      - homepage.name=Plex
+      - homepage.icon=plex.png
+      - homepage.href=http://plex.${HOSTNAME}/
+      - homepage.description=Plex Media server
+      - homepage.weight=3
+      - homepage.widget.type=plex
+      - homepage.widget.url=http://plex:32400
+      - homepage.widget.key=${PLEX_TOKEN}
+
+  tautulli:
+    image: lscr.io/linuxserver/tautulli:latest
+    container_name: tautulli
+    environment:
+      - PUID=${USER_ID}
+      - PGID=${GROUP_ID}
+      - TZ=${TIMEZONE}
+    volumes:
+      - ./tautulli:/config
+    restart: unless-stopped
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.tautulli.rule=Host(`tautulli.${HOSTNAME}`)
+      - traefik.http.services.tautulli.loadbalancer.server.port=8181
+      - homepage.group=Plex
+      - homepage.name=Tautulli
+      - homepage.icon=tautulli.png
+      - homepage.href=http://tautulli.${HOSTNAME}/
+      - homepage.description=Tautulli for Plex
+      - homepage.weight=3
+      - homepage.widget.type=tautulli
+      - homepage.widget.url=http://tautulli:8181
+      - homepage.widget.key=${TAUTULLI_API_KEY}
+
+  overseerr:
+    image: lscr.io/linuxserver/overseerr:latest
+    container_name: overseerr
+    environment:
+      - PUID=${USER_ID}
+      - PGID=${GROUP_ID}
+      - TZ=${TIMEZONE}
+    volumes:
+      - ./overseerr:/config
+    ports:
+      - 5055:5055
+    restart: unless-stopped
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.overseerr.rule=Host(`overseerr.${HOSTNAME}`)
+      - traefik.http.services.overseerr.loadbalancer.server.port=5055
+      - homepage.group=Plex
+      - homepage.name=Overseerr
+      - homepage.icon=overseerr.png
+      - homepage.href=http://overseerr.${HOSTNAME}/
+      - homepage.description=Overseerr for Plex
+      - homepage.weight=3
+      - homepage.widget.type=overseerr
+      - homepage.widget.url=http://overseerr:5055
+      - homepage.widget.key=${OVERSEERR_API_KEY}
+
 
   watchtower:
     image: containrrr/watchtower
@@ -320,14 +415,15 @@ services:
       - PHOTOPRISM_JPEG_QUALITY=92
       - TF_CPP_MIN_LOG_LEVEL=0
       - PHOTOPRISM_FFMPEG_ENCODER=h264_qsv
-      - PHOTOPRISM_INIT=tensorflow-amd64-avx2
+      - PHOTOPRISM_FFMPEG_BUFFERS=64
+      - PHOTOPRISM_INIT=intel tensorflow-amd64-avx2
     devices:
       - /dev/dri:/dev/dri
     labels:
       - traefik.enable=true
       - traefik.http.routers.photoprism.rule=Host(`photoprism.${HOSTNAME}`)
       - traefik.http.services.photoprism.loadbalancer.server.port=2342
-      - homepage.group=Media
+      - homepage.group=Services
       - homepage.name=Photoprism
       - homepage.icon=photoprism.png
       - homepage.href=http://photoprism.${HOSTNAME}/

@@ -80,3 +80,34 @@
     group: root
     mode: '0644'
   loop: "{{ services }}"
+
+- name: Create Samba configuration
+  ansible.builtin.template:
+    src: samba.conf.j2
+    dest: /etc/samba/smb.conf
+    owner: root
+    group: root
+    mode: u=rw,go=r
+  notify:
+    - restart samba
+
+- name: Configure Samba share(s)
+  ansible.builtin.blockinfile:
+    path: /etc/samba/smb.conf
+    insertafter: "#===== Share Definitions ====="
+    block: |
+      [{{ samba.label }}]
+      path = "{{ samba.path }}"
+      available = {{ samba.available }}
+      valid users = {{ samba.users | map(attribute='name') | join(" ") }}
+      browsable = {{ samba.browsable }}
+      read only = {{ samba.readonly }}
+      writable = {{ samba.writable }}
+  notify:
+    - restart samba
+
+- name: Creating samba user passwords
+  shell: "(echo {{ item['smbpasswd'] }}; echo {{ item['smbpasswd'] }}) | smbpasswd -s -a {{ item['name'] }}"
+  become: true
+  with_items: "{{ samba.users }}"
+
