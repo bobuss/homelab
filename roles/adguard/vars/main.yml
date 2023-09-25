@@ -1,0 +1,3 @@
+---
+
+adguard_working_dir: "{{ working_dir }}/adguard"

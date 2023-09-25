@@ -1,0 +1,94 @@
+#
+# General
+#
+hostname: mymachine
+
+timezone: US/Eastern
+
+username: user
+
+guid: 1000
+
+working_dir: "/home/{{ username }}"
+
+
+#
+# mount points
+#
+#
+mount_points:
+  - src: //192.168.1.199/Films
+    path: /mnt/Films
+    opts: "rw,_netdev,vers=2.0,credentials=/root/.examplecredentials,uid={{ username }}"
+
+
+#
+# samba shares
+#
+#
+samba:
+  bind_if_only: false
+  interfaces:
+    - lo
+    - enp0s31f6
+  workgroup: WORKGROUP
+  label: MOUNTS
+  path: /home/user/dropbox
+  users:
+    - name: username
+      smbpasswd: password
+  available: "yes"
+  browsable: "yes"
+  readonly: "no"
+  writable: "yes"
+
+
+# api keys must be generated via the UI
+sonarr_api_key:
+radarr_api_key:
+prowlarr_api_key:
+jellyseerr_api_key:
+jellyfin_api_key:
+immich_api_key:
+tautulli_api_key:
+overseerr_api_key:
+plex_token:
+
+
+homepage:
+  title: "My Station"
+  background_image: https://images.unsplash.com/photo-1502790671504-542ad42d5189?auto=format&fit=crop&w=2560&q=80
+  search_provider: google
+  header_style: boxed
+  weather_city:
+  weather_lat:
+  weather_long:
+  weather_unit: metric
+
+# see https://support.nordvpn.com/Connectivity/Linux/1905092252/How-to-log-in-to-NordVPN-on-Linux-with-a-token.htm
+nordvpn:
+  token:
+  country:
+
+# see https://docs.docker.com/network/drivers/macvlan/
+macvlan:
+  parent: enp0s31f6
+  subnet: "192.168.1.0/24"
+  gateway: 192.168.1.1
+  ip_range: "192.168.0.224/27"
+
+adguard:
+  static_ip: 192.168.1.200
+  username: admin
+  password: password
+
+photoprism:
+  password: password
+  mysql:
+    root_password: root
+    db: photoprism
+    user: photoprism
+    password: photoprism
+
+watchtower:
+  notification_url:

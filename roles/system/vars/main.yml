@@ -1,0 +1,46 @@
+---
+
+#
+# Packages
+#
+#
+extra_packages:
+  - iperf3
+  - speedtest-cli
+  - htop
+  - tmux
+  - mosh
+  - rsync
+  - lm-sensors
+  - iotop
+  - ncdu
+  - cifs-utils
+  - samba
+  - smbclient
+  - tree
+  - avahi-daemon
+  - avahi-discover
+  - avahi-utils
+  - libnss-mdns
+  - mdns-scan
+  - python3
+  - python3-pip
+  - mc
+
+
+#
+# Services configuration, to create local subdomains
+#
+#
+services:
+  - qbittorrent
+  - sonarr
+  - radarr
+  - notifiarr
+  - prowlarr
+  - jellyfin
+  - jellyseerr
+  - plex
+  - tautulli
+  - overseerr
+  - photoprism
