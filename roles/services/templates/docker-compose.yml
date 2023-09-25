@@ -188,7 +188,7 @@ services:
       - PUID=${USER_ID}
       - PGID=${GROUP_ID}
       - TZ=${TIMEZONE}
-      - JELLYFIN_PublishedServerUrl=jellyfin.${HOSTNAME}
+      - JELLYFIN_PublishedServerUrl={{ ansible_default_ipv4.address|default(ansible_all_ipv4_addresses[0]) }}
     volumes:
       - ./jellyfin:/config
       - ${DATA_ROOT}:/data
@@ -196,6 +196,7 @@ services:
       - /mnt/Series:/mnt/Series
       - /mnt/Enfants:/mnt/Enfants
     ports:
+      - "8096:8096/tcp"
       - "7359:7359/udp"
       - "1900:1900/udp"
     devices:
@@ -357,6 +358,8 @@ services:
   #
   # photoprism
   #
+  # to connect:
+  # docker exec -it photoprism-mariadb mariadb --user root -proot
   mariadb:
     container_name: photoprism-mariadb
     image: mariadb:latest
