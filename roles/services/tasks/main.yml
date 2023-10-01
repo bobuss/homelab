@@ -12,9 +12,6 @@
     - "{{ working_dir }}/torrents/movies"
     - "{{ working_dir }}/media/tv"
     - "{{ working_dir }}/media/movies"
-    - "{{ working_dir }}/media/Films"
-    - "{{ working_dir }}/media/Enfants"
-    - "{{ working_dir }}/media/Series"
 
 - name: Create directories
   file:
