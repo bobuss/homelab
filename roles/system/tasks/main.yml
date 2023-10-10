@@ -20,6 +20,16 @@
     name: "{{ extra_packages }}"
     state: present
 
+- ansible.builtin.get_url:
+    url: "{{ item }}"
+    dest: /tmp
+  loop: "{{ remote_packages }}"
+
+- ansible.builtin.apt:
+    deb: "/tmp/{{ item | basename}}"
+    state: present
+  loop: "{{ remote_packages }}"
+
 - name: Set the hostname
   hostname:
     name: "{{ hostname }}"

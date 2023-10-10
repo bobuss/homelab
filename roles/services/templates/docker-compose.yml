@@ -2,24 +2,43 @@ version: "3.9"
 services:
 
   traefik:
-    image: traefik:v2.9
+    image: traefik:latest
     container_name: traefik
-    restart: always
+    restart: unless-stopped
+    environment:
+      - CLOUDFLARE_EMAIL=${CLOUDFLARE_EMAIL}
+      - CLOUDFLARE_DNS_API_TOKEN=${CLOUDFLARE_DNS_API_TOKEN}
+      - CLOUDFLARE_ZONE_API_TOKEN=${CLOUDFLARE_ZONE_API_TOKEN}
+      - LETS_ENCRYPT_EMAIL=${LETS_ENCRYPT_EMAIL}
     command:
-      - "--log.level=DEBUG"
-      - "--api.insecure=true"
-      - "--api.dashboard=true"
+      - --log.level=DEBUG
+      - --api.insecure=true
+      - --api.dashboard=true
       - --providers.docker=true
       - --providers.docker.exposedbydefault=false
       - --entrypoints.web.address=:80
+      - --entrypoints.web-secure.address=:443
+      - --entrypoints.web.http.redirections.entryPoint.to=web-secure
+      - --entrypoints.web.http.redirections.entryPoint.scheme=https
+      - --entrypoints.web.http.redirections.entrypoint.permanent=true
+      - --certificatesresolvers.myresolver.acme.dnschallenge=${DNS_CHALLENGE:-true}
+      - --certificatesresolvers.myresolver.acme.dnschallenge.provider=${DNS_CHALLENGE_PROVIDER:-cloudflare}
+      - --certificatesresolvers.myresolver.acme.dnschallenge.resolvers=1.1.1.1:53,8.8.8.8:53
+      - --certificatesresolvers.myresolver.acme.caserver=${LETS_ENCRYPT_CA_SERVER:-https://acme-v02.api.letsencrypt.org/directory}
+      - --certificatesresolvers.myresolver.acme.email=${LETS_ENCRYPT_EMAIL}
+      - --certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json
     ports:
       - 80:80             # traefik
-      - 8080:8080         # traefik dashboard
+      - 443:443           # traefik https
+      - 8080:8080         # dashboard
     volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - ./letsencrypt:/letsencrypt
+      - /var/run/docker.sock:/var/run/docker.sock:ro
     labels:
       # - traefik.enable=true
-      # - traefik.http.routers.homepage.rule=(Host(`${HOSTNAME}`) && PathPrefix(`/dashboard`))
+      # - traefik.http.routers.homepage.rule=Host(`traefik.${HOSTNAME}`)
+      # - traefik.http.routers.sonarr.tls=true
+      # - traefik.http.routers.sonarr.tls.certresolver=myresolver
       # - traefik.http.services.homepage.loadbalancer.server.port=8080
       - homepage.group=Utilities
       - homepage.name=traefik
@@ -31,13 +50,13 @@ services:
       - homepage.widget.url=http://traefik:8080
 
   homepage:
-    image: ghcr.io/benphelps/homepage:latest
+    image: ghcr.io/gethomepage/homepage:latest
     container_name: homepage
     volumes:
       - ./homepage:/app/config
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ${DATA_ROOT}:/data
-    restart: always
+    restart: unless-stopped
     # command: [sh, -c, "cp -n /app/config/tpl/*.yaml /app/config && node server.js"]
     networks:
       # needed to reach adguard ip in macvlan
@@ -46,8 +65,20 @@ services:
     labels:
       - traefik.enable=true
       - traefik.docker.network=docker-compose-nas
-      - traefik.http.routers.homepage.rule=(Host(`${HOSTNAME}`) && PathPrefix(`/`))
+      - traefik.http.routers.homepage.rule=(Host(`${HOSTNAME}`))
+      - traefik.http.routers.homepage.tls=true
+      - traefik.http.routers.homepage.tls.certresolver=myresolver
       - traefik.http.services.homepage.loadbalancer.server.port=3000
+
+  # homarr:
+  #   container_name: homarr
+  #   image: ghcr.io/ajnart/homarr:latest
+  #   restart: unless-stopped
+  #   volumes:
+  #     - ./homarr/configs:/app/data/configs
+  #     - ./homarr/icons:/app/public/icons
+  #   ports:
+  #     - '7575:7575'
 
   sonarr:
     image: lscr.io/linuxserver/sonarr
@@ -59,10 +90,12 @@ services:
     volumes:
       - ./sonarr:/config
       - ${DATA_ROOT}:/data
-    restart: always
+    restart: unless-stopped
     labels:
       - traefik.enable=true
       - traefik.http.routers.sonarr.rule=Host(`sonarr.${HOSTNAME}`)
+      - traefik.http.routers.sonarr.tls=true
+      - traefik.http.routers.sonarr.tls.certresolver=myresolver
       - traefik.http.services.sonarr.loadbalancer.server.port=8989
       - homepage.group=Media
       - homepage.name=Sonarr
@@ -84,10 +117,12 @@ services:
     volumes:
       - ./radarr:/config
       - ${DATA_ROOT}:/data
-    restart: always
+    restart: unless-stopped
     labels:
       - traefik.enable=true
       - traefik.http.routers.radarr.rule=Host(`radarr.${HOSTNAME}`)
+      - traefik.http.routers.radarr.tls=true
+      - traefik.http.routers.radarr.tls.certresolver=myresolver
       - traefik.http.services.radarr.loadbalancer.server.port=7878
       - homepage.group=Media
       - homepage.name=Radarr
@@ -99,6 +134,33 @@ services:
       - homepage.widget.url=http://radarr:7878
       - homepage.widget.key=${RADARR_API_KEY}
 
+  readarr:
+    image: lscr.io/linuxserver/readarr:develop
+    container_name: readarr
+    environment:
+      - PUID=${USER_ID}
+      - PGID=${GROUP_ID}
+      - TZ=${TIMEZONE}
+    volumes:
+      - ./readarr:/config
+      - ${DATA_ROOT}:/data
+    restart: unless-stopped
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.readarr.rule=Host(`readarr.${HOSTNAME}`)
+      - traefik.http.routers.readarr.tls=true
+      - traefik.http.routers.readarr.tls.certresolver=myresolver
+      - traefik.http.services.readarr.loadbalancer.server.port=8787
+      - homepage.group=Media
+      - homepage.name=Readarr
+      - homepage.icon=readarr.png
+      - homepage.href=http://readarr.${HOSTNAME}/
+      - homepage.description=Movies management
+      - homepage.weight=1
+      - homepage.widget.type=readarr
+      - homepage.widget.url=http://readarr:8787
+      - homepage.widget.key=${READARR_API_KEY}
+
   prowlarr:
     image: lscr.io/linuxserver/prowlarr:latest
     container_name: prowlarr
@@ -108,7 +170,7 @@ services:
       - TZ=${TIMEZONE}
     volumes:
       - ./prowlarr:/config
-    restart: always
+    restart: unless-stopped
     network_mode: "service:vpn"
     depends_on:
       vpn:
@@ -116,6 +178,8 @@ services:
     labels:
       - traefik.enable=true
       - traefik.http.routers.prowlarr.rule=Host(`prowlarr.${HOSTNAME}`)
+      - traefik.http.routers.prowlarr.tls=true
+      - traefik.http.routers.prowlarr.tls.certresolver=myresolver
       - traefik.http.services.prowlarr.loadbalancer.server.port=9696
       - homepage.group=Media
       - homepage.name=Prowlarr
@@ -152,7 +216,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-    restart: always
+    restart: unless-stopped
 
   qbittorrent:
     image: lscr.io/linuxserver/qbittorrent:libtorrentv1
@@ -165,10 +229,12 @@ services:
     volumes:
       - ./qbittorrent:/config
       - ${DOWNLOAD_ROOT}:/data/torrents
-    restart: always
+    restart: unless-stopped
     labels:
       - traefik.enable=true
       - traefik.http.routers.qbittorrent.rule=Host(`qbittorrent.${HOSTNAME}`)
+      - traefik.http.routers.qbittorrent.tls=true
+      - traefik.http.routers.qbittorrent.tls.certresolver=myresolver
       - traefik.http.services.qbittorrent.loadbalancer.server.port=8081
       - homepage.group=Download
       - homepage.name=qBittorrent
@@ -180,6 +246,56 @@ services:
       - homepage.widget.url=http://qbittorrent:8081
       - homepage.widget.username=admin
       - homepage.widget.password=adminadmin
+
+  kavita:
+    image: kizaing/kavita:latest
+    container_name: kavita
+    volumes:
+      - ./media/books:/books
+      - ./kavita:/kavita/config
+    restart: unless-stopped
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.kavita.rule=Host(`kavita.${HOSTNAME}`)
+      - traefik.http.routers.kavita.tls=true
+      - traefik.http.routers.kavita.tls.certresolver=myresolver
+      - traefik.http.services.kavita.loadbalancer.server.port=5000
+      - homepage.group=Books
+      - homepage.name=Kavita
+      - homepage.icon=kavita.png
+      - homepage.href=http://kavita.${HOSTNAME}/
+      - homepage.description=Kavita
+      - homepage.weight=3
+      - homepage.widget.type=kavita
+      - homepage.widget.url=http://kavita:5000
+      - homepage.widget.username=${KAVITA_USERNAME}
+      - homepage.widget.password=${KAVITA_PASSWORD}
+
+  audiobookshelf:
+    image: ghcr.io/advplyr/audiobookshelf:latest
+    container_name: audiobookshelf
+    environment:
+      - PORT=13378
+    volumes:
+      - ./media/audiobooks:/audiobooks
+      - ./audiobookshelf/config:/config
+      - ./audiobookshelf/metadata:/metadata
+    restart: unless-stopped
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.audiobookshelf.rule=Host(`audiobookshelf.${HOSTNAME}`)
+      - traefik.http.routers.audiobookshelf.tls=true
+      - traefik.http.routers.audiobookshelf.tls.certresolver=myresolver
+      - traefik.http.services.audiobookshelf.loadbalancer.server.port=13378
+      - homepage.group=Books
+      - homepage.name=Audiobookshelf
+      - homepage.icon=audiobookshelf.png
+      - homepage.href=http://audiobookshelf.${HOSTNAME}/
+      - homepage.description=Audiobookshelf
+      - homepage.weight=3
+      - homepage.widget.type=audiobookshelf
+      - homepage.widget.url=http://audiobookshelf:13378
+      - homepage.widget.key=${AUDIOBOOKSHELF_API_KEY}
 
   jellyfin:
     image: lscr.io/linuxserver/jellyfin
@@ -203,10 +319,12 @@ services:
     devices:
       - /dev/dri/renderD128:/dev/dri/renderD128
       - /dev/dri/card0:/dev/dri/card0
-    restart: always
+    restart: unless-stopped
     labels:
       - traefik.enable=true
       - traefik.http.routers.jellyfin.rule=Host(`jellyfin.${HOSTNAME}`)
+      - traefik.http.routers.jellyfin.tls=true
+      - traefik.http.routers.jellyfin.tls.certresolver=myresolver
       - traefik.http.services.jellyfin.loadbalancer.server.port=8096
       - homepage.group=Jellyfin
       - homepage.name=Jellyfin
@@ -230,6 +348,8 @@ services:
     labels:
       - traefik.enable=true
       - traefik.http.routers.jellyseerr.rule=Host(`jellyseerr.${HOSTNAME}`)
+      - traefik.http.routers.jellyseerr.tls=true
+      - traefik.http.routers.jellyseerr.tls.certresolver=myresolver
       - traefik.http.services.jellyseerr.loadbalancer.server.port=5055
       - homepage.group=Jellyfin
       - homepage.name=Jellyseerr
@@ -272,6 +392,8 @@ services:
     labels:
       - traefik.enable=true
       - traefik.http.routers.plex.rule=Host(`plex.${HOSTNAME}`)
+      - traefik.http.routers.plex.tls=true
+      - traefik.http.routers.plex.tls.certresolver=myresolver
       - traefik.http.services.plex.loadbalancer.server.port=32400
       - homepage.group=Plex
       - homepage.name=Plex
@@ -296,6 +418,8 @@ services:
     labels:
       - traefik.enable=true
       - traefik.http.routers.tautulli.rule=Host(`tautulli.${HOSTNAME}`)
+      - traefik.http.routers.tautulli.tls=true
+      - traefik.http.routers.tautulli.tls.certresolver=myresolver
       - traefik.http.services.tautulli.loadbalancer.server.port=8181
       - homepage.group=Plex
       - homepage.name=Tautulli
@@ -322,6 +446,8 @@ services:
     labels:
       - traefik.enable=true
       - traefik.http.routers.overseerr.rule=Host(`overseerr.${HOSTNAME}`)
+      - traefik.http.routers.overseerr.tls=true
+      - traefik.http.routers.overseerr.tls.certresolver=myresolver
       - traefik.http.services.overseerr.loadbalancer.server.port=5055
       - homepage.group=Plex
       - homepage.name=Overseerr
@@ -337,7 +463,7 @@ services:
   watchtower:
     image: containrrr/watchtower
     container_name: watchtower
-    restart: always
+    restart: unless-stopped
     environment:
       - TZ=${TIMEZONE}
       - WATCHTOWER_CLEANUP=true
@@ -427,6 +553,8 @@ services:
     labels:
       - traefik.enable=true
       - traefik.http.routers.photoprism.rule=Host(`photoprism.${HOSTNAME}`)
+      - traefik.http.routers.photoprism.tls=true
+      - traefik.http.routers.photoprism.tls.certresolver=myresolver
       - traefik.http.services.photoprism.loadbalancer.server.port=2342
       - homepage.group=Services
       - homepage.name=Photoprism

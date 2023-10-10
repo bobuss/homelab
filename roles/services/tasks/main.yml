@@ -9,9 +9,13 @@
   loop:
     - "{{ working_dir }}"
     - "{{ working_dir }}/torrents/tv"
-    - "{{ working_dir }}/torrents/movies"
     - "{{ working_dir }}/media/tv"
+    - "{{ working_dir }}/torrents/movies"
     - "{{ working_dir }}/media/movies"
+    - "{{ working_dir }}/torrents/books"
+    - "{{ working_dir }}/media/books"
+    - "{{ working_dir }}/torrents/audiobooks"
+    - "{{ working_dir }}/media/audiobooks"
 
 - name: Create directories
   file:

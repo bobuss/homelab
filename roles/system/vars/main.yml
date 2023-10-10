@@ -28,6 +28,13 @@ extra_packages:
   - mc
   - intel-opencl-icd
 
+#
+# Remote deb
+#
+#
+remote_packages:
+  - https://dl.smallstep.com/gh-release/cli/docs-cli-install/v0.24.4/step-cli_0.24.4_amd64.deb
+
 
 #
 # Services configuration, to create local subdomains
@@ -37,6 +44,7 @@ services:
   - qbittorrent
   - sonarr
   - radarr
+  - readarr
   - prowlarr
   - jellyfin
   - jellyseerr
@@ -44,3 +52,5 @@ services:
   - tautulli
   - overseerr
   - photoprism
+  - kavita
+  - audiobookshelf

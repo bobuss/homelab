@@ -1,0 +1,14 @@
+---
+
+- name: Make sure that the docker.service.d folder exists
+  ansible.builtin.file:
+    path: "/etc/systemd/system/docker.service.d"
+    state: directory
+    mode: 0755
+
+- name: create mounts.conf file for docker service
+  template:
+    src: mounts.conf.j2
+    dest: /etc/systemd/system/docker.service.d/mounts.conf.j2
+    mode: 0644
+  notify: restart docker

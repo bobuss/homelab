@@ -25,14 +25,20 @@ services:
         ipv4_address: ${ADGUARD_STATIC_IP}
       default:
     labels:
+      - traefik.enable=true
+      - "traefik.docker.network=adguard-macvlan"
+      - traefik.http.routers.adguard.rule=Host(`adguard.${HOSTNAME}`)
+      - traefik.http.routers.adguard.tls=true
+      - traefik.http.routers.adguard.tls.certresolver=myresolver
+      - traefik.http.services.adguard.loadbalancer.server.port=3000
       - homepage.group=Utilities
       - homepage.name=AdguardHome
       - homepage.icon=adguard-home.png
-      - homepage.href=http://${ADGUARD_STATIC_IP}
+      - homepage.href=http://adguard.${HOSTNAME}
       - homepage.description=DNS with blocking capabilities
-      - homepage.weight=3
+      - homepage.weight=0
       - homepage.widget.type=adguard
-      - homepage.widget.url=http://${ADGUARD_STATIC_IP}
+      - homepage.widget.url=http://adguard.${HOSTNAME}
       - homepage.widget.username=${ADGUARD_USERNAME}
       - homepage.widget.password=${ADGUARD_PASSWORD}
 
@@ -47,4 +53,3 @@ networks:
         - subnet: "${MACVLAN_SUBNET}"
           gateway: "${MACVLAN_GATEWAY}"
           ip_range: "${MACVLAN_IP_RANGE}"
-

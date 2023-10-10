@@ -5,20 +5,31 @@
 - hosts: all
   become: yes
 
-  roles:
-    - name: system
+  tasks:
+    - import_role:
+        name: system
       tags:
         - system
 
-    - name: geerlingguy.docker
+    - import_role:
+        name: geerlingguy.docker
       tags:
         - docker
 
-    - name: adguard
+    - import_role:
+        name: system
+        tasks_from: docker_mounts.yml
+      tags:
+        - system
+        - docker
+
+    - import_role:
+        name: adguard
       tags:
         - adguard
 
-    - name: services
+    - import_role:
+        name: services
       tags:
         - services
 

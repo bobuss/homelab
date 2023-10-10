@@ -43,9 +43,19 @@ samba:
   writable: "yes"
 
 
+# cloud flare and let's encrypt
+cloudflare:
+  email:
+  dns_api_token:
+  zone_api_token:
+lets_encrypt_email:
+
+
+
 # api keys must be generated via the UI
 sonarr_api_key:
 radarr_api_key:
+readarr_api_key:
 prowlarr_api_key:
 jellyseerr_api_key:
 jellyfin_api_key:
@@ -53,6 +63,7 @@ immich_api_key:
 tautulli_api_key:
 overseerr_api_key:
 plex_token:
+audiobookshelf_api_key:
 
 
 homepage:
@@ -89,6 +100,10 @@ photoprism:
     db: photoprism
     user: photoprism
     password: photoprism
+
+kavita:
+  username:
+  password:
 
 watchtower:
   notification_url:

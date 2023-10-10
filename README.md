@@ -45,6 +45,7 @@ Adguard must be configured during its 1st run on `adguard.static_ip`, port 3000.
 ansible-playbook run.yml --tags services
 ```
 
+
 ## Service configuation
 
 Unfortunetely, those services require the GUI to be configured (local URL + api keys):
