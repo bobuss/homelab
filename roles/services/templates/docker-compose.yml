@@ -81,7 +81,7 @@ services:
   #     - '7575:7575'
 
   sonarr:
-    image: lscr.io/linuxserver/sonarr
+    image: lscr.io/linuxserver/sonarr:develop
     container_name: sonarr
     environment:
       - PUID=${USER_ID}
@@ -108,7 +108,7 @@ services:
       - homepage.widget.key=${SONARR_API_KEY}
 
   radarr:
-    image: lscr.io/linuxserver/radarr
+    image: lscr.io/linuxserver/radarr:latest
     container_name: radarr
     environment:
       - PUID=${USER_ID}
@@ -298,7 +298,7 @@ services:
       - homepage.widget.key=${AUDIOBOOKSHELF_API_KEY}
 
   jellyfin:
-    image: lscr.io/linuxserver/jellyfin
+    image: lscr.io/linuxserver/jellyfin:latest
     container_name: jellyfin
     environment:
       - PUID=${USER_ID}
@@ -491,6 +491,7 @@ services:
   mariadb:
     container_name: photoprism-mariadb
     image: mariadb:latest
+    command: mariadbd --innodb-buffer-pool-size=1G
     restart: unless-stopped
     stop_grace_period: 5s
     security_opt: # see https://github.com/MariaDB/mariadb-docker/issues/434#issuecomment-1136151239
