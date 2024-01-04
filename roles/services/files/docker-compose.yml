@@ -189,7 +189,7 @@ services:
       - homepage.description=Indexers management
       - homepage.weight=4
       - homepage.widget.type=prowlarr
-      - homepage.widget.url=http://prowlarr:9696
+      - homepage.widget.url=http://vpn:9696
       - homepage.widget.key=${PROWLARR_API_KEY}
 
   # flaresolverr:
