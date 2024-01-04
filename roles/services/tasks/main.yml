@@ -1,6 +1,6 @@
 ---
 
-- name: Make sure that the docker compose folder exists
+- name: Make sure some folder exist
   ansible.builtin.file:
     path: "{{ item }}"
     owner: "{{ username }}"
@@ -16,6 +16,7 @@
     - "{{ working_dir }}/media/books"
     - "{{ working_dir }}/torrents/audiobooks"
     - "{{ working_dir }}/media/audiobooks"
+    - "{{ working_dir }}/media/podcasts"
 
 - name: Create directories
   file:
@@ -25,17 +26,21 @@
   with_filetree: "{{ role_path }}/templates/"
   when: item.state == 'directory'
 
-- name: create services and docker-compose files
+- name: put config files
   template:
     src: '{{ item.src }}'
     dest: "{{ working_dir }}/{{ item.path }}"
     mode: '{{ item.mode }}'
-    backup: true
   with_filetree: "{{ role_path }}/templates/"
   when: item.state == 'file'
+
+- name: create compose file
+  copy:
+    src: docker-compose.yml
+    dest: "{{ working_dir }}/"
+    mode: 0644
 
 - name: Docker-compose up
   community.docker.docker_compose:
     project_src: "{{ working_dir }}"
     remove_orphans: true
-

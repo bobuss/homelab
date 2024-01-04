@@ -121,3 +121,9 @@
   become: true
   with_items: "{{ samba.users }}"
 
+- name: make samba share visible via mdns
+  copy:
+    src: smb.service
+    dest: /etc/avahi/services/smb.service
+    mode: 0644
+

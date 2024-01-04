@@ -105,5 +105,10 @@ kavita:
   username:
   password:
 
+jellystat:
+  postgres_user:
+  postgres_password:
+  jwt_secret:
+
 watchtower:
   notification_url:

@@ -57,3 +57,28 @@ Unfortunetely, those services require the GUI to be configured (local URL + api 
   - jellyseerr
   - photoprism
 
+
+# tailscale for external access
+
+When running tailscale on the VM, you can access all the services, if external DNS us point to tailscale VM IP, with wildcard.
+
+```
+--- external DNS
+*.subdomain   100.x.y.z
+subdomain     100.x.y.z
+```
+
+But if you are in your local network, you must override this, by telling adguard DNS to point to the private IP, so you could avoid using tailscale when connecting to your LAN
+
+```
+--- internal DNS
+*.subdomain   192.168.1.X
+subdomain     192.168.1.X
+```
+
+
+## TODO
+
+- when traefik is ran, get its IP
+  - `docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' traefik`
+  - So we can configure Home Assistant proxy setting in `template/homeassistant/configuration.yaml`

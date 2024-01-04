@@ -28,6 +28,8 @@ extra_packages:
   - mc
   - intel-opencl-icd
   - jq
+  - bluez
+  - network-manager
 
 #
 # Remote deb

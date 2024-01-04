@@ -28,3 +28,33 @@
   community.docker.docker_compose:
     project_src: "{{ adguard_working_dir }}"
     remove_orphans: true
+
+
+# https://blog.oddbit.com/post/2018-03-12-using-docker-macvlan-networks/
+
+# sudo ip link add mynet-shim link enp0s31f6 type macvlan mode bridge
+# sudo ip addr add 192.168.1.201/32 dev mynet-shim
+# sudo ip link set mynet-shim up
+# - name: create a new macvlan interface on the host
+#   community.general.nmcli:
+#     type: macvlan
+#     conn_name: mynet-shim
+#     # ifname: mymacvlan0
+#     macvlan:
+#       mode: 2 # bridge
+#       parent: "{{ macvlan.parent }}"
+#     ip4:
+#       - "{{ macvlan.aux_address }}/32"
+#     autoconnect: true
+#     state: present
+
+# - name: configure the interface with the address we reserved
+#   community.general.nmcli:
+#     conn_name: mynet-shim
+#     # ifname: eth1
+#     # type: ethernet
+
+#     state: present
+
+# ip route add 192.168.1.224/26 dev mynet-shim
+# nmcli connection modify enp1s0 +ipv4.routes "192.168.122.0/24
