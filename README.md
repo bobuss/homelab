@@ -18,6 +18,13 @@ Jellyfin and photoprism supports Hardware acceleration for video encoding/decodi
 - [overseerr](https://overseerr.dev/)
 - [photoprism](https://www.photoprism.app/)
 - [nordVPN](https://nordvpn.com/) if needed (I needed to reach a French based indexed with Prowlarr)
+- [jellystat](https://github.com/CyferShepard/Jellystat)
+- [audiobookshelf](https://github.com/advplyr/audiobookshelf)
+- [kavita](https://www.kavitareader.com/)
+- [homeassistant](https://www.home-assistant.io/)
+- [readarr](https://readarr.com/)
+- [tailscale](https://tailscale.com/)
+
 
 ![](images/screen.png)
 
@@ -55,7 +62,9 @@ Unfortunetely, those services require the GUI to be configured (local URL + api 
   - prowlarr
   - jellyfin
   - jellyseerr
+  - jellystat
   - photoprism
+
 
 
 # tailscale for external access
