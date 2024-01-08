@@ -15,3 +15,26 @@
     enabled: yes
     daemon_reload: yes
   become: true
+
+- name: reload systemd
+  command: systemctl daemon-reload
+
+- name: Enable systemd mount
+  command: systemctl enable "{{ item.path[1:] | replace('/', '-') }}.mount"
+  loop: "{{ mount_points }}"
+  notify: Start systemd mount
+
+- name: Start systemd mount
+  command: systemctl start "{{ item.path[1:] | replace('/', '-') }}.mount"
+  loop: "{{ mount_points }}"
+  notify: reload systemd
+
+- name: Enable systemd automount
+  command: systemctl enable "{{ item.path[1:] | replace('/', '-') }}.automount"
+  loop: "{{ mount_points }}"
+  notify: Start systemd automount
+
+- name: Start systemd automount
+  command: systemctl start "{{ item.path[1:] | replace('/', '-') }}.automount"
+  loop: "{{ mount_points }}"
+  notify: reload systemd

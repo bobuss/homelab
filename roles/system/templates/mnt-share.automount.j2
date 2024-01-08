@@ -1,0 +1,9 @@
+[Unit]
+Description=automount {{ item.src }}
+After=network.target multi-user.target
+
+[Automount]
+Where={{ item.path }}
+
+[Install]
+WantedBy=default.target

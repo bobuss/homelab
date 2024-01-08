@@ -1,0 +1,15 @@
+[Unit]
+Description=mount {{ item.src }}
+After=network.target multi-user.target
+
+[Mount]
+What={{ item.src }}
+Where={{ item.path }}
+Type=cifs
+Options=rw,noauto,_netdev,x-systemd.automount,vers=2.0,uid={{ username }},credentials=/root/.credential_{{ item.name | lower }}
+SloppyOptions=on
+DirectoryMode=0755
+TimeoutSec=0
+
+[Install]
+WantedBy=default.target

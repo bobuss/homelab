@@ -17,9 +17,11 @@ working_dir: "/home/{{ username }}"
 #
 #
 mount_points:
-  - src: //192.168.1.199/Films
+  - name: films
+    src: //192.168.1.199/Films
     path: /mnt/Films
-    opts: "rw,_netdev,vers=2.0,credentials=/root/.examplecredentials,uid={{ username }}"
+    user: user
+    password: password
 
 
 #

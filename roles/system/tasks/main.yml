@@ -57,14 +57,21 @@
     owner: "{{ username }}"
   loop: "{{ mount_points }}"
 
-- name: Mount SMB volumes
-  ansible.posix.mount:
-    src: "{{ item.src }}"
-    path: "{{ item.path }}"
-    opts: "{{ item.opts }}"
-    fstype: cifs
-    state: mounted
+- name: create credential files
+  ansible.builtin.template:
+    src: credentials.j2
+    dest: "/root/.credential_{{ item.name | lower }}"
+    mode: 0600
   loop: "{{ mount_points }}"
+
+# - name: Mount SMB volumes
+#   ansible.posix.mount:
+#     src: "{{ item.src }}"
+#     path: "{{ item.path }}"
+#     opts: "rw,_netdev,vers=2.0,uid={{ username }},credentials=/root/.credential_{{ item.name | lower }}"
+#     fstype: cifs
+#     state: mounted
+#   loop: "{{ mount_points }}"
 
 - name: install mdns-publish-cname pip package
   ansible.builtin.pip:
@@ -127,3 +134,16 @@
     dest: /etc/avahi/services/smb.service
     mode: 0644
 
+- name: Create mount systemd file(s)
+  template:
+    src: mnt-share.mount.j2
+    dest: "/etc/systemd/system/{{ item.path[1:] | replace('/', '-') }}.mount"
+  loop: "{{ mount_points }}"
+  notify: Enable systemd mount
+
+- name: Create aumount systemd file(s)
+  template:
+    src: mnt-share.automount.j2
+    dest: "/etc/systemd/system/{{ item.path[1:] | replace('/', '-') }}.automount"
+  loop: "{{ mount_points }}"
+  notify: Enable systemd automount
