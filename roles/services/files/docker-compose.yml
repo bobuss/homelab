@@ -58,6 +58,7 @@ services:
     volumes:
       - ./homepage:/app/config
       - /var/run/docker.sock:/var/run/docker.sock:ro
+      - .:/data
     restart: unless-stopped
     # command: [sh, -c, "cp -n /app/config/tpl/*.yaml /app/config && node server.js"]
     networks:
@@ -91,6 +92,7 @@ services:
       - TZ=${TIMEZONE}
     volumes:
       - ./sonarr:/config
+      - .:/data
     restart: unless-stopped
     labels:
       - traefik.enable=true
@@ -118,6 +120,7 @@ services:
       - TZ=${TIMEZONE}
     volumes:
       - ./radarr:/config
+      - .:/data
     restart: unless-stopped
     labels:
       - traefik.enable=true
@@ -144,6 +147,7 @@ services:
       - TZ=${TIMEZONE}
     volumes:
       - ./readarr:/config
+      - .:/data
     restart: unless-stopped
     labels:
       - traefik.enable=true
@@ -332,7 +336,7 @@ services:
       - DOCKER_MODS=linuxserver/mods:jellyfin-opencl-intel
     volumes:
       - ./jellyfin:/config
-      - ./media:/data/media
+      - .:/data
       - /mnt/Films:/mnt/Films
       - /mnt/Series:/mnt/Series
       - /mnt/Enfants:/mnt/Enfants
