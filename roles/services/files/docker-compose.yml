@@ -170,8 +170,11 @@ services:
       - TZ=${TIMEZONE}
     volumes:
       - ./prowlarr:/config
-    restart: unless-stopped
+    restart: always                 # restart prowlarr if servive:vpn is touched
     network_mode: "service:vpn"
+    depends_on:
+      vpn:
+        condition: service_healthy
     labels:
       - traefik.enable=true
       - traefik.http.routers.prowlarr.rule=Host(`prowlarr.${HOSTNAME}`)
@@ -219,25 +222,24 @@ services:
     volumes:
       - ./nordvpn:/config
     cap_add:
-      - NET_ADMIN               # Required
-      - NET_RAW                 # Required
-    environment:                # Review https://github.com/bubuntux/nordvpn#environment-variables
-      - TOKEN=${NORDVPN_TOKEN}  # Required
+      - NET_ADMIN
+      - NET_RAW
+    environment:                              # Review https://github.com/bubuntux/nordvpn#environment-variables
+      - TOKEN=${NORDVPN_TOKEN}
       - CONNECT=${NORDVPN_COUNTRY}
       - TECHNOLOGY=NordLynx
-      - NET_LOCAL=0.0.0.0/0  # So it can be accessed within the local network
-      # add docker dns to /etc/resolv.conf
-      - POST_CONNECT="/config/resolv.conf.sh"
+      - NET_LOCAL=192.168.1.0/24              # So it can be accessed within the local network
+      - POST_CONNECT="/config/resolv.conf.sh" # so it resolves using internal DNS
     sysctls:
-      - net.ipv6.conf.all.disable_ipv6=1  # Recomended if using ipv4 only
+      - net.ipv6.conf.all.disable_ipv6=1      # Recomended if using ipv4 only
     healthcheck:
       test: ping -c 1 www.google.com || exit 1
-      interval: 30s
-      timeout: 10s
+      interval: 5s
+      timeout: 3s
       retries: 3
     restart: unless-stopped
-    extra_hosts:
-      - host.docker.internal:172.17.0.1
+    # extra_hosts:                            # seems not needed anymore
+    #   - host.docker.internal:172.17.0.1
 
   qbittorrent:
     image: lscr.io/linuxserver/qbittorrent:libtorrentv1
