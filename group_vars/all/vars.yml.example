@@ -7,6 +7,8 @@ timezone: US/Eastern
 
 username: user
 
+uid: 1000
+
 guid: 1000
 
 working_dir: "/home/{{ username }}"
@@ -18,10 +20,16 @@ working_dir: "/home/{{ username }}"
 #
 mount_points:
   - name: films
+    type: cifs
     src: //192.168.1.199/Films
     path: /mnt/Films
     user: user
     password: password
+  - name: films_ssh
+    type: fuse.sshfs
+    src: user@1.2.3.4:/home/user
+    path: /mnt/films_ssh
+    identity_file: /home/{{ username }}/.ssh/id_rsa
 
 
 #

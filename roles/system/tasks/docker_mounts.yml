@@ -11,4 +11,6 @@
     src: mounts.conf.j2
     dest: /etc/systemd/system/docker.service.d/mounts.conf
     mode: 0644
+  vars:
+    mount_paths: "{{ mount_points | map(attribute='path') | join(' ') }}"
   notify: restart docker

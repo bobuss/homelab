@@ -30,6 +30,7 @@ extra_packages:
   - jq
   - bluez
   - network-manager
+  - sshfs
 
 #
 # Remote deb

@@ -62,7 +62,7 @@
     src: credentials.j2
     dest: "/root/.credential_{{ item.name | lower }}"
     mode: 0600
-  loop: "{{ mount_points }}"
+  loop: "{{ mount_points | selectattr('user', 'defined') | list }}"
 
 # - name: Mount SMB volumes
 #   ansible.posix.mount:
